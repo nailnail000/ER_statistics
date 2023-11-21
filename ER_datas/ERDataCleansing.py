@@ -110,11 +110,19 @@ class FilterType():
         dic_characterNum_datas.split_tier(user_data["mmrBefore"],user_data["mmrGain"])
         self.dic_characterNum_datas[characterNum]=dic_characterNum_datas
 
-    def test_init(self):
-        self.maxHp=[]
+    def camera_init(self):
+        self.addSurveillanceCamera=[]
+        self.addTelephotoCamera=[]
+        self.mmrGain=[]
+        self.mmrBefore=[]
         self.gameRank=[]
-    def test(self,user_data):
-        self.maxHp+=[user_data["maxHp"]]
+        
+
+    def camera(self,user_data):
+        self.addSurveillanceCamera+=[user_data["addSurveillanceCamera"]]
+        self.addTelephotoCamera+=[user_data["addTelephotoCamera"]]
+        self.mmrGain+=[user_data["mmrGain"]]
+        self.mmrBefore+=[user_data["mmrBefore"]]
         self.gameRank+=[user_data["gameRank"]]
 
 
@@ -123,14 +131,14 @@ class FilterType():
         "data_cleansing": data_cleansing_init,
         "mmrGain_option": mmrGain_option_init,
         "split_mmr":split_mmr_init,
-        "test":test_init,
+        "camera":camera_init
     }
     dic_type_result={
         "filter": filter_data,
         "data_cleansing": data_cleansing,
         "mmrGain_option": mmrGain_option,
         "split_mmr":split_mmr,
-        "test":test
+        "camera":camera
     }
     
     '''setting'''
