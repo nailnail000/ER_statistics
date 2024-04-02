@@ -1,12 +1,14 @@
 tier_range = {}
 tier_range[0] = "아이언"
-tier_range[1000] = "브론즈"
-tier_range[2000] = "실버"
-tier_range[3000] = "골드"
-tier_range[4000] = "플레티넘"
-tier_range[5000] = "다이아"
-tier_range[6000] = "데미갓"
+tier_range[800] = "브론즈"
+tier_range[1600] = "실버"
+tier_range[2600] = "골드"
+tier_range[3600] = "플레티넘"
+tier_range[4800] = "다이아"
+tier_range[6200] = "데미갓"
 tier_range["all"] = "all"
+
+tier = [0, 800, 1600, 2600, 3600, 4800, 6200]
 
 mmrGain_range = {}
 mmrGain_range[0] = "0~24"
@@ -54,3 +56,24 @@ class Re_Tier:
             if mmrGain_min <= mmrGain:
                 return mmrGain_min
         return "~0"
+
+
+def Grade(persent, grade):
+    if persent <= 4:
+        grade.append(1)
+    elif 4 < persent <= 11:
+        grade.append(2)
+    elif 11 < persent <= 23:
+        grade.append(3)
+    elif 23 < persent <= 40:
+        grade.append(4)
+    elif 40 < persent <= 60:
+        grade.append(5)
+    elif 60 < persent <= 77:
+        grade.append(6)
+    elif 77 < persent <= 89:
+        grade.append(7)
+    elif 89 < persent <= 96:
+        grade.append(8)
+    else:
+        grade.append(9)

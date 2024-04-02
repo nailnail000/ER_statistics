@@ -7,6 +7,10 @@ import re
 from ER_apis.crawler import DakPlayerCrawler
 from public_setting.function import Json
 import os
+from ER_datas.tier_mmr import *
+from ER_apis.crawler import *
+import scipy.stats as stats
+
 
 calculater = ["/", "*", "+", "-", "(", ")", "%", "//"]
 
@@ -377,15 +381,21 @@ class Camera_All(DataClass):
         characterNum = user_data["characterNum"]
         str_characterNum = str(characterNum)
         if characterNum == 22:
-            self.dic_cameraGroup_LukeMai[character_name[str_characterNum]] = (
-                self.dic_cameraGroup_LukeMai.get(character_name[str_characterNum], [])
-                + [addCamera]
-            )
+            self.dic_cameraGroup_LukeMai[
+                character_name[str_characterNum]
+            ] = self.dic_cameraGroup_LukeMai.get(
+                character_name[str_characterNum], []
+            ) + [
+                addCamera
+            ]
         elif characterNum == 45:
-            self.dic_cameraGroup_LukeMai[character_name[str_characterNum]] = (
-                self.dic_cameraGroup_LukeMai.get(character_name[str_characterNum], [])
-                + [addCamera]
-            )
+            self.dic_cameraGroup_LukeMai[
+                character_name[str_characterNum]
+            ] = self.dic_cameraGroup_LukeMai.get(
+                character_name[str_characterNum], []
+            ) + [
+                addCamera
+            ]
         else:
             self.dic_cameraGroup_LukeMai["나머지"].append(addCamera)
 
@@ -531,12 +541,92 @@ class GetMMRFromRank(DataClass):
         self.range_list = list(self.range_list.keys())
 
 
-class RankPerTier(DataClass):
-    def __init__(self, *conditions):
-        self.datas = {}
+class TeamLuck(DataClass):
+    def __init__(self, player_name, season, *conditions):
+        self.conditions = conditions
+        self.dic_TeamKill_tier = {
+            "아이언": [],
+            "브론즈": [],
+            "실버": [],
+            "골드": [],
+            "플레티넘": [],
+            "다이아": [],
+            "데미갓": [],
+        }
+        self.dic_rank_tier = {
+            "아이언": [],
+            "브론즈": [],
+            "실버": [],
+            "골드": [],
+            "플레티넘": [],
+            "다이아": [],
+            "데미갓": [],
+        }
+        self.user = User(player_name, season)
+        self.grade = []
 
     def add_data(self, user_data):
-        return super().add_data(user_data)
+        mmrBefore = user_data["mmrBefore"]
+        gameRank = user_data["gameRank"]
+        TeamKill = user_data["teamKill"]
+        for i in range(len(tier)):
+            if mmrBefore <= tier[i]:
+                mmrBefore = tier[i]
+                break
+            elif mmrBefore >= 6200:
+                mmrBefore = 6200
+        self.dic_TeamKill_tier[tier_range[mmrBefore]].append(TeamKill)
+        self.dic_rank_tier[tier_range[mmrBefore]].append(gameRank)
 
     def last_calculate(self):
-        return super().last_calculate()
+        user_TeamKill = self.user.user_data["TK"]
+        user_mmr = self.user.user_data["MMR"][-1]
+        user_rank = self.user.user_data["RANK"]
+        user_rank = [int(i[1:]) for i in user_rank if re.match(r"#[0-9]+", i)]
+
+        for i in range(len(tier)):
+            if user_mmr <= tier[i]:
+                user_mmr = tier[i]
+                break
+            elif user_mmr >= 6200:
+                user_mmr = 6200
+
+        mean_user_TeamKill = np.mean(user_TeamKill)
+        mean_user_rank = np.mean(user_rank)
+        mean_TeamKill = np.mean(self.dic_TeamKill_tier[tier_range[user_mmr]])
+        mean_rank = np.mean(self.dic_rank_tier[tier_range[user_mmr]])
+        std_TeamKill = np.std(self.dic_TeamKill_tier[tier_range[user_mmr]])
+        std_rank = np.std(self.dic_rank_tier[tier_range[user_mmr]])
+        normal_dist_TeamKill = stats.norm(mean_TeamKill, std_TeamKill)
+        normal_dist_rank = stats.norm(mean_rank, std_rank)
+        rank_persent = 100 * (1 - normal_dist_rank.cdf(mean_user_rank))
+        TeamKill_persent = 100 * (1 - normal_dist_TeamKill.cdf(mean_user_TeamKill))
+        print(tier_range[user_mmr])
+        print(len(self.dic_TeamKill_tier[tier_range[user_mmr]]))
+        Grade(TeamKill_persent, self.grade)
+        Grade(rank_persent, self.grade)
+        dic_print = {
+            "해당 티어 평균 팀킬": mean_TeamKill,
+            "당신의 평균 팀킬 ": mean_user_TeamKill,
+            "당신의 상위 팀킬 퍼센트(%) ": TeamKill_persent,
+            "당신의 상위 평균 순위 퍼센트(%)": rank_persent,
+        }
+        print(dic_print)
+        print(self.grade)
+        mean_grade = np.mean(self.grade)
+        if 1 <= mean_grade < 2:
+            print("통나무2개드는자")
+        elif 2 <= mean_grade < 3:
+            print("통나무1개드는자")
+        elif 3 <= mean_grade < 4:
+            print("1인분초과2인분미만")
+        elif 4 <= mean_grade < 5:
+            print("1인분")
+        elif 5 <= mean_grade < 6:
+            print("통나무주의보")
+        elif 6 <= mean_grade < 7:
+            print("통나무1개")
+        elif 7 <= mean_grade < 8:
+            print("통나무2개")
+        else:
+            print("탭댄스")
