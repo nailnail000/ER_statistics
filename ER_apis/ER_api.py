@@ -245,7 +245,9 @@ class ERAPI:
         responced_game_match_data = self.request_to_ER_api(
             request_url=f"https://open-api.bser.io/v1/games/{self.game_id}"
         )
-
+        print(responced_game_match_data)
+        if not responced_game_match_data:
+            return False
         if not responced_game_match_data.get("userGames"):
             return False
         else:
